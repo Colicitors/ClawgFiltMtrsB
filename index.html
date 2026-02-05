@@ -70,6 +70,7 @@
       align-items:center;
       gap: 8px;
       white-space: nowrap;
+      min-width: 0;
     }
 
     .title{
@@ -104,26 +105,15 @@
       white-space: nowrap;
     }
 
-    /* Controls scroll horizontally instead of wrapping (keeps height low) */
+    /* ✅ OPTION A: Wrap controls (no scrollbar) */
     .controls{
       display:flex;
       align-items:center;
       gap: var(--gap);
-      flex-wrap: nowrap;
+      flex-wrap: wrap;     /* ✅ wraps instead of scrolling */
+      overflow: hidden;    /* ✅ no scrollbar */
       min-width: 0;
-      overflow-x: auto;
-      overflow-y: hidden;
-      padding-bottom: 1px;
-      scrollbar-width: thin;
-    }
-    .controls::-webkit-scrollbar{ height: 6px; }
-    .controls::-webkit-scrollbar-thumb{
-      background: rgba(255,255,255,.20);
-      border-radius: 999px;
-    }
-    .controls::-webkit-scrollbar-track{
-      background: rgba(255,255,255,.06);
-      border-radius: 999px;
+      padding-bottom: 0;
     }
 
     input, select{
@@ -167,10 +157,11 @@
       color: #64748b;
     }
 
-    .w-year{   width: 130px; flex: 0 0 auto; }
-    .w-status{ width: 150px; flex: 0 0 auto; }
-    .w-lawyer{ width: 150px; flex: 0 0 auto; }
-    .w-type{   width: 150px; flex: 0 0 auto; }
+    /* Compact widths: helps avoid wrapping too often */
+    .w-year{   width: 130px; }
+    .w-status{ width: 150px; }
+    .w-lawyer{ width: 150px; }
+    .w-type{   width: 150px; }
 
     .orPill{
       font-size: 11px;
@@ -183,13 +174,13 @@
       background: rgba(255,255,255,.10);
       user-select:none;
       line-height: 1;
-      flex: 0 0 auto;
     }
 
     .searchWrap{
       position: relative;
       width: 280px;
-      flex: 0 0 auto;
+      flex: 1 1 260px;  /* ✅ can shrink/grow to reduce wrapping */
+      min-width: 220px;
     }
     .searchWrap input{
       width: 100%;
@@ -214,6 +205,15 @@
       font-size: 14px;
       cursor: pointer;
       padding: 0;
+    }
+    .clearX:hover{
+      background: rgba(255,255,255,.16);
+      border-color: rgba(255,255,255,.30);
+    }
+    .clearX:focus{
+      outline: none;
+      box-shadow: 0 0 0 3px var(--ring);
+      border-color: rgba(34,211,238,.45);
     }
 
     .right{
@@ -242,9 +242,20 @@
       font-size: var(--fsSmall);
       font-weight: 650;
       cursor:pointer;
+      transition: background .12s ease, border-color .12s ease, transform .05s ease;
+    }
+    button:hover{
+      background: rgba(255,255,255,.14);
+      border-color: rgba(255,255,255,.28);
+    }
+    button:active{ transform: translateY(1px); }
+    button:focus{
+      outline:none;
+      box-shadow: 0 0 0 3px var(--ring);
+      border-color: rgba(34,211,238,.45);
     }
 
-    /* Minimal content area (error line only) */
+    /* Minimal content: error line only */
     .content{ padding: 4px 8px 6px; }
     .err{
       font-size: 12px;
@@ -257,7 +268,7 @@
       .topbar{ grid-template-columns: 1fr; align-items: start; }
       .right{ justify-content: flex-start; }
       .orPill{ display:none; }
-      .searchWrap{ width: 100%; }
+      .searchWrap{ width: 100%; min-width: 0; }
       .w-year,.w-status,.w-lawyer,.w-type{ width: 100%; }
     }
   </style>
@@ -309,7 +320,6 @@
     function setErr(msg){ errEl.textContent = msg || ""; }
     function norm(v){ return (v === null || v === undefined) ? "" : String(v); }
 
-    // Basic sanity check
     if (!window.grist) {
       setErr("Grist plugin API did not load (window.grist is undefined). Check the <script src> tag.");
     } else {
@@ -330,11 +340,7 @@
       const searchHL = document.getElementById("searchHL");
 
       let rows = [];
-      let state = {
-        queryDraft: "",
-        query: "",
-        year: "", status: "", lawyer: "", type: ""
-      };
+      let state = { queryDraft:"", query:"", year:"", status:"", lawyer:"", type:"" };
 
       function uniq(arr){
         const s = new Set(arr.map(norm));
@@ -346,7 +352,6 @@
       function sortAlpha(items){
         return items.sort((a,b)=>a.localeCompare(b, undefined, { sensitivity:"base" }));
       }
-
       function fillSelect(sel, items, selected, allLabel){
         sel.innerHTML = "";
         const all = document.createElement("option");
@@ -376,13 +381,10 @@
         }
       }
 
-      function searching(){
-        return norm(state.query).trim().length > 0;
-      }
+      function searching(){ return norm(state.query).trim().length > 0; }
 
       function syncUIForMode(){
         const isSearching = searching();
-
         yearSel.disabled = isSearching;
         statusSel.disabled = isSearching;
         lawyerSel.disabled = isSearching;
@@ -446,8 +448,7 @@
       }
 
       function updateClearX(){
-        const hasText = norm(state.queryDraft).length > 0;
-        clearX.style.display = hasText ? "inline-flex" : "none";
+        clearX.style.display = norm(state.queryDraft).length > 0 ? "inline-flex" : "none";
       }
 
       function clearSearch(){
@@ -476,10 +477,7 @@
         }
       });
 
-      clearX.addEventListener("click", () => {
-        clearSearch();
-        q.focus();
-      });
+      clearX.addEventListener("click", () => { clearSearch(); q.focus(); });
 
       yearSel.addEventListener("change", () => { state.year = yearSel.value; applySelection(); });
       statusSel.addEventListener("change", () => { state.status = statusSel.value; applySelection(); });
