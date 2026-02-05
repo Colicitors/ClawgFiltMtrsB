@@ -263,6 +263,10 @@
       min-height: 14px;
       white-space: pre-wrap;
     }
+    /* ✅ empty-state message styling (uses same element) */
+    .ok{
+      color: rgba(241,245,249,.80);
+    }
 
     @media (max-width: 980px){
       .topbar{ grid-template-columns: 1fr; align-items: start; }
@@ -317,7 +321,10 @@
 
   <script>
     const errEl = document.getElementById("err");
-    function setErr(msg){ errEl.textContent = msg || ""; }
+    function setErr(msg, isOk){
+      errEl.textContent = msg || "";
+      errEl.classList.toggle("ok", !!isOk);
+    }
     function norm(v){ return (v === null || v === undefined) ? "" : String(v); }
 
     if (!window.grist) {
@@ -429,10 +436,24 @@
         return ids;
       }
 
+      // ✅ FIXED: always pass ids (even when empty) so linked tables (ClientsList) show empty
+      // ✅ EMPTY STATE: show a message when no matches
       function applySelection(){
         const ids = computeIds();
         countEl.textContent = `${ids.length} matches`;
-        grist.setSelectedRows(ids.length ? ids : null);
+
+        // Key change: DO NOT send null. Empty array keeps an explicit empty selection.
+        grist.setSelectedRows(ids);
+
+        if (!ids.length){
+          if (searching()){
+            setErr(`No records match your search: "${state.query}"`, true);
+          } else {
+            setErr("No records match the selected filters.", true);
+          }
+        } else {
+          setErr("", true);
+        }
       }
 
       function renderOptions(){
