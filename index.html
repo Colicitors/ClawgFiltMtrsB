@@ -11,11 +11,11 @@
   <style>
     :root{
       /* Lighter (less dark) theme with strong contrast */
-      --page:   #162238;      /* lighter than before */
+      --page:   #162238;
       --card:   rgba(255,255,255,.08);
       --card2:  rgba(255,255,255,.06);
 
-      --ink:    #f1f5f9;      /* brighter text */
+      --ink:    #f1f5f9;
       --muted:  rgba(241,245,249,.72);
       --border: rgba(255,255,255,.16);
       --shadow: 0 10px 24px rgba(0,0,0,.28);
@@ -29,8 +29,8 @@
       --gap: 6px;
       --radius: 12px;
 
-      --controlH: 30px;     /* slightly taller for larger text, still compact */
-      --fs: 13px;           /* main UI font size */
+      --controlH: 30px;
+      --fs: 13px;
       --fsSmall: 12px;
 
       --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
@@ -174,7 +174,7 @@
       height: var(--controlH);
       border-radius: 10px;
       border: 1px solid rgba(255,255,255,.20);
-      background: rgba(255,255,255,.12); /* lighter background */
+      background: rgba(255,255,255,.12);
       padding: 0 10px;
       font-size: var(--fs);
       color: #ffffff;
@@ -193,13 +193,14 @@
       background: rgba(255,255,255,.16);
     }
 
+    /* Disabled filter look when search is active */
     select:disabled{
       background: rgba(255,255,255,.07);
       color: rgba(241,245,249,.55);
       border-color: rgba(255,255,255,.12);
     }
 
-    /* OR pill (slimmer than divider line row) */
+    /* OR pill */
     .orPill{
       font-size: 11px;
       font-weight: 900;
@@ -220,7 +221,7 @@
     }
     .searchWrap input{
       width: 100%;
-      padding-right: 32px; /* room for X */
+      padding-right: 32px;
     }
 
     .clearX{
@@ -259,13 +260,36 @@
       min-height: 14px;
     }
 
-    /* Responsive: stack into two rows on narrow widths */
+    /* ---------- FIX: Dropdown option list contrast ---------- */
+    /* Many browsers render the dropdown list using OS styling.
+       These rules ensure options are readable (dark text on light background). */
+    select option{
+      background-color: #f8fafc;  /* light */
+      color: #0f172a;             /* dark */
+      font-size: 13px;
+    }
+    select option:checked{
+      background-color: #e2e8f0;
+      color: #020617;
+    }
+    select option:disabled{
+      background-color: #f1f5f9;
+      color: #64748b;
+    }
+
+    /* Optional: nicer hover (supported in some browsers) */
+    select option:hover{
+      background-color: #c7f9ff;
+      color: #042f2e;
+    }
+
+    /* Responsive: stack on narrower widths */
     @media (max-width: 920px){
       .rowMain{
         grid-template-columns: 1fr 1fr;
       }
       .orPill{
-        display:none; /* hide OR pill on tiny layouts (space-saving) */
+        display:none;
       }
       .searchWrap{
         grid-column: 1 / -1;
@@ -291,7 +315,6 @@
       </div>
 
       <div class="content">
-        <!-- One slim row: dropdowns + OR + search -->
         <div class="rowMain">
           <label class="sr-only" for="yearSel">Select Matter Year</label>
           <select id="yearSel" aria-label="Select Matter Year"></select>
@@ -345,8 +368,8 @@
 
     let rows = []; // {id, MTR_YEAR, Status, Lawyer, Mtr_Type, _search}
     let state = {
-      queryDraft: "",   // what user is typing
-      query: "",        // committed search (Enter)
+      queryDraft: "",
+      query: "",
       year: "", status: "", lawyer: "", type: ""
     };
 
@@ -408,7 +431,6 @@
       if (isSearching){
         searchHL.textContent = state.query;
         searchTag.style.display = "inline-flex";
-        // Tooltip only (placeholder won't show when input has value)
         q.title = "Search mode active. Filters are ignored while searching. Press Esc to clear.";
       } else {
         searchTag.style.display = "none";
@@ -417,9 +439,6 @@
       }
     }
 
-    // OR behavior:
-    // - Search committed (Enter) => SEARCH ONLY (ignores dropdowns)
-    // - No committed search => FILTER ONLY (AND across dropdowns)
     function computeIds(){
       const qtext = norm(state.query).trim().toLowerCase();
 
@@ -466,7 +485,6 @@
       fillSelect(typeSel, types, state.type, "All types");
     }
 
-    // Search: type does NOT search; Enter commits the query
     function updateClearX(){
       const hasText = norm(state.queryDraft).length > 0;
       clearX.style.display = hasText ? "inline-flex" : "none";
@@ -503,7 +521,6 @@
       q.focus();
     });
 
-    // Filters (safe-guard even though disabled during search)
     yearSel.addEventListener("change", () => { state.year = yearSel.value; applySelection(); });
     statusSel.addEventListener("change", () => { state.status = statusSel.value; applySelection(); });
     lawyerSel.addEventListener("change", () => { state.lawyer = lawyerSel.value; applySelection(); });
@@ -526,7 +543,6 @@
       applySelection();
     });
 
-    // Load data once (selected table must be Matters).
     setErr("");
     grist.fetchSelectedTable({ format:"rows" })
       .then(data => {
