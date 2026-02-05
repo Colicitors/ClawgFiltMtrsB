@@ -5,12 +5,11 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Filter Matters</title>
 
-  <!-- Grist Plugin API (required for hosted widgets) -->
+  <!-- ✅ Correct Grist Plugin API -->
   <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
 
   <style>
     :root{
-      /* Lighter (less dark) theme with strong contrast */
       --page:   #162238;
       --card:   rgba(255,255,255,.08);
       --card2:  rgba(255,255,255,.06);
@@ -20,11 +19,9 @@
       --border: rgba(255,255,255,.16);
       --shadow: 0 10px 24px rgba(0,0,0,.28);
 
-      /* Accent */
       --accent: #22d3ee;
       --ring:   rgba(34,211,238,.25);
 
-      /* Slim sizing + bigger text */
       --pad: 6px;
       --gap: 6px;
       --radius: 12px;
@@ -57,14 +54,23 @@
       overflow: hidden;
     }
 
+    /* --- Top banner now contains everything --- */
     .topbar{
-      display:flex;
+      display:grid;
+      grid-template-columns: auto 1fr auto;
       align-items:center;
-      justify-content:space-between;
       gap: var(--gap);
       padding: 6px 8px;
       background: linear-gradient(90deg, rgba(96,165,250,.12), rgba(34,211,238,.10));
       border-bottom: 1px solid rgba(255,255,255,.12);
+    }
+
+    .left{
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      min-width: 0;
+      white-space: nowrap;
     }
 
     .title{
@@ -72,10 +78,6 @@
       font-size: 13px;
       letter-spacing: .2px;
       color: #ffffff;
-      display:flex;
-      align-items:center;
-      gap: 8px;
-      white-space: nowrap;
     }
 
     .tag{
@@ -88,9 +90,10 @@
       border: 1px solid rgba(34,211,238,.26);
       background: rgba(34,211,238,.14);
       color: #eaffff;
-      max-width: 280px;
+      max-width: 220px;
       overflow: hidden;
       text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .tag .hl{
       background: rgba(34,211,238,.22);
@@ -100,6 +103,116 @@
       color: #ffffff;
       font-weight: 800;
       white-space: nowrap;
+    }
+
+    /* Middle controls live in banner */
+    .controls{
+      display:flex;
+      align-items:center;
+      gap: var(--gap);
+      flex-wrap: wrap;      /* allows wrap on smaller widths */
+      justify-content:flex-start;
+      min-width: 0;
+    }
+
+    input, select{
+      height: var(--controlH);
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.20);
+      background: rgba(255,255,255,.12);
+      padding: 0 10px;
+      font-size: var(--fs);
+      color: #ffffff;
+      outline:none;
+      min-width: 0;
+      transition: border-color .12s ease, box-shadow .12s ease, background .12s ease;
+    }
+    input::placeholder{ color: rgba(241,245,249,.78); }
+
+    input:focus, select:focus{
+      box-shadow: 0 0 0 3px var(--ring);
+      border-color: rgba(34,211,238,.55);
+      background: rgba(255,255,255,.16);
+    }
+
+    select:disabled{
+      background: rgba(255,255,255,.07);
+      color: rgba(241,245,249,.55);
+      border-color: rgba(255,255,255,.12);
+    }
+
+    /* ✅ Fix dropdown option list contrast */
+    select option{
+      background-color: #f8fafc;
+      color: #0f172a;
+      font-size: 13px;
+    }
+    select option:checked{
+      background-color: #e2e8f0;
+      color: #020617;
+    }
+    select option:disabled{
+      background-color: #f1f5f9;
+      color: #64748b;
+    }
+
+    /* Set compact widths so controls fit on banner */
+    .w-year{   width: 140px; }
+    .w-status{ width: 160px; }
+    .w-lawyer{ width: 160px; }
+    .w-type{   width: 160px; }
+
+    .orPill{
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .14em;
+      color: rgba(255,255,255,.92);
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.10);
+      user-select:none;
+      line-height: 1;
+      flex: 0 0 auto;
+    }
+
+    .searchWrap{
+      position: relative;
+      min-width: 220px;
+      flex: 1 1 260px; /* expands when space available */
+    }
+    .searchWrap input{
+      width: 100%;
+      padding-right: 32px;
+    }
+
+    .clearX{
+      position: absolute;
+      right: 7px;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 20px;
+      width: 20px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.22);
+      background: rgba(255,255,255,.12);
+      color: rgba(255,255,255,.95);
+      display: none;
+      align-items:center;
+      justify-content:center;
+      line-height: 1;
+      font-size: 14px;
+      cursor: pointer;
+      padding: 0;
+    }
+    .clearX:hover{
+      background: rgba(255,255,255,.16);
+      border-color: rgba(255,255,255,.30);
+    }
+    .clearX:focus{
+      outline: none;
+      box-shadow: 0 0 0 3px var(--ring);
+      border-color: rgba(34,211,238,.45);
     }
 
     .right{
@@ -141,159 +254,29 @@
       border-color: rgba(34,211,238,.45);
     }
 
+    /* Content area is now just error line => very slim */
     .content{
-      padding: 8px;
-      display:grid;
-      gap: var(--gap);
+      padding: 4px 8px 6px;  /* slim */
     }
-
-    /* One slim row: 4 dropdowns + OR + search */
-    .rowMain{
-      display:grid;
-      gap: var(--gap);
-      align-items:center;
-      grid-template-columns:
-        minmax(130px, .8fr)
-        minmax(140px, .9fr)
-        minmax(140px, 1fr)
-        minmax(140px, 1fr)
-        auto
-        minmax(220px, 1.6fr);
-    }
-
-    /* Visually-hidden labels (keep accessibility, reduce vertical height) */
-    .sr-only{
-      position:absolute;
-      width:1px;height:1px;
-      padding:0;margin:-1px;
-      overflow:hidden;clip:rect(0,0,0,0);
-      white-space:nowrap;border:0;
-    }
-
-    input, select{
-      height: var(--controlH);
-      border-radius: 10px;
-      border: 1px solid rgba(255,255,255,.20);
-      background: rgba(255,255,255,.12);
-      padding: 0 10px;
-      font-size: var(--fs);
-      color: #ffffff;
-      outline:none;
-      min-width: 0;
-      transition: border-color .12s ease, box-shadow .12s ease, background .12s ease;
-    }
-
-    input::placeholder{
-      color: rgba(241,245,249,.78);
-    }
-
-    input:focus, select:focus{
-      box-shadow: 0 0 0 3px var(--ring);
-      border-color: rgba(34,211,238,.55);
-      background: rgba(255,255,255,.16);
-    }
-
-    /* Disabled filter look when search is active */
-    select:disabled{
-      background: rgba(255,255,255,.07);
-      color: rgba(241,245,249,.55);
-      border-color: rgba(255,255,255,.12);
-    }
-
-    /* OR pill */
-    .orPill{
-      font-size: 11px;
-      font-weight: 900;
-      letter-spacing: .14em;
-      color: rgba(255,255,255,.92);
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.18);
-      background: rgba(255,255,255,.10);
-      user-select:none;
-      line-height: 1;
-    }
-
-    /* Search input with clear X inside */
-    .searchWrap{
-      position: relative;
-      min-width: 0;
-    }
-    .searchWrap input{
-      width: 100%;
-      padding-right: 32px;
-    }
-
-    .clearX{
-      position: absolute;
-      right: 7px;
-      top: 50%;
-      transform: translateY(-50%);
-      height: 20px;
-      width: 20px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.22);
-      background: rgba(255,255,255,.12);
-      color: rgba(255,255,255,.95);
-      display: none;
-      align-items:center;
-      justify-content:center;
-      line-height: 1;
-      font-size: 14px;
-      cursor: pointer;
-      padding: 0;
-    }
-    .clearX:hover{
-      background: rgba(255,255,255,.16);
-      border-color: rgba(255,255,255,.30);
-    }
-    .clearX:focus{
-      outline: none;
-      box-shadow: 0 0 0 3px var(--ring);
-      border-color: rgba(34,211,238,.45);
-    }
-
     .err{
       font-size: 12px;
       color: #fecaca;
-      margin-top: 2px;
       min-height: 14px;
+      white-space: pre-wrap;
     }
 
-    /* ---------- FIX: Dropdown option list contrast ---------- */
-    /* Many browsers render the dropdown list using OS styling.
-       These rules ensure options are readable (dark text on light background). */
-    select option{
-      background-color: #f8fafc;  /* light */
-      color: #0f172a;             /* dark */
-      font-size: 13px;
-    }
-    select option:checked{
-      background-color: #e2e8f0;
-      color: #020617;
-    }
-    select option:disabled{
-      background-color: #f1f5f9;
-      color: #64748b;
-    }
-
-    /* Optional: nicer hover (supported in some browsers) */
-    select option:hover{
-      background-color: #c7f9ff;
-      color: #042f2e;
-    }
-
-    /* Responsive: stack on narrower widths */
-    @media (max-width: 920px){
-      .rowMain{
-        grid-template-columns: 1fr 1fr;
+    /* Responsive: stack controls under title when narrow */
+    @media (max-width: 980px){
+      .topbar{
+        grid-template-columns: 1fr;
+        align-items: start;
       }
-      .orPill{
-        display:none;
+      .right{
+        justify-content: flex-start;
       }
-      .searchWrap{
-        grid-column: 1 / -1;
-      }
+      .orPill{ display:none; } /* save space when narrow */
+      .searchWrap{ min-width: 0; flex: 1 1 100%; }
+      .w-year,.w-status,.w-lawyer,.w-type{ width: 100%; }
     }
   </style>
 </head>
@@ -302,290 +285,296 @@
   <div class="shell">
     <div class="card">
       <div class="topbar">
-        <div class="title">
-          Filter Matters
+
+        <div class="left">
+          <div class="title">Filter Matters</div>
           <span class="tag" id="searchTag">
             Search <span class="hl" id="searchHL"></span>
           </span>
         </div>
-        <div class="right">
-          <span class="pill" id="count">0 matches</span>
-          <button id="clearBtn" title="Reset filters and search">Clear</button>
-        </div>
-      </div>
 
-      <div class="content">
-        <div class="rowMain">
-          <label class="sr-only" for="yearSel">Select Matter Year</label>
-          <select id="yearSel" aria-label="Select Matter Year"></select>
-
-          <label class="sr-only" for="statusSel">Select Matter Status</label>
-          <select id="statusSel" aria-label="Select Matter Status"></select>
-
-          <label class="sr-only" for="lawyerSel">Lawyer</label>
-          <select id="lawyerSel" aria-label="Lawyer"></select>
-
-          <label class="sr-only" for="typeSel">Matter Type</label>
-          <select id="typeSel" aria-label="Matter Type"></select>
+        <div class="controls">
+          <select id="yearSel" class="w-year" aria-label="Select Matter Year"></select>
+          <select id="statusSel" class="w-status" aria-label="Select Matter Status"></select>
+          <select id="lawyerSel" class="w-lawyer" aria-label="Lawyer"></select>
+          <select id="typeSel" class="w-type" aria-label="Matter Type"></select>
 
           <span class="orPill" aria-hidden="true">OR</span>
 
-          <label class="sr-only" for="q">Search (MatterID, Clients, Subject, Subject2)</label>
           <div class="searchWrap">
             <input
               id="q"
               type="search"
               autocomplete="off"
-              placeholder="Press Enter to search. Filters are ignored while searching."
-              title="Press Enter to search. Filters are ignored while searching. Press Esc to clear."
+              placeholder="Search by MatterID, Client, or Subject"
+              title="Search by MatterID, Client, or Subject. Press Enter to search. Filters are ignored while searching. Press Esc to clear."
             />
             <button class="clearX" id="clearX" type="button" aria-label="Clear search" title="Clear search">×</button>
           </div>
         </div>
 
+        <div class="right">
+          <span class="pill" id="count">0 matches</span>
+          <button id="clearBtn" title="Reset filters and search">Clear</button>
+        </div>
+
+      </div>
+
+      <div class="content">
         <div class="err" id="err"></div>
       </div>
     </div>
   </div>
 
   <script>
-    grist.ready({ requiredAccess: "read table", allowSelectBy: true });
-
-    const q = document.getElementById("q");
-    const clearX = document.getElementById("clearX");
-
-    const yearSel = document.getElementById("yearSel");
-    const statusSel = document.getElementById("statusSel");
-    const lawyerSel = document.getElementById("lawyerSel");
-    const typeSel = document.getElementById("typeSel");
-
-    const countEl = document.getElementById("count");
     const errEl = document.getElementById("err");
-    const clearBtn = document.getElementById("clearBtn");
-
-    const searchTag = document.getElementById("searchTag");
-    const searchHL = document.getElementById("searchHL");
-
-    let rows = []; // {id, MTR_YEAR, Status, Lawyer, Mtr_Type, _search}
-    let state = {
-      queryDraft: "",
-      query: "",
-      year: "", status: "", lawyer: "", type: ""
-    };
-
-    function norm(v){ return (v === null || v === undefined) ? "" : String(v); }
     function setErr(msg){ errEl.textContent = msg || ""; }
+    function norm(v){ return (v === null || v === undefined) ? "" : String(v); }
 
-    function uniq(arr){
-      const s = new Set(arr.map(norm));
-      return [...s].filter(v => v !== "");
-    }
-    function sortYears(years){
-      return years.map(Number).filter(n => !Number.isNaN(n)).sort((a,b)=>b-a).map(String);
-    }
-    function sortAlpha(items){
-      return items.sort((a,b)=>a.localeCompare(b, undefined, { sensitivity:"base" }));
-    }
+    if (!window.grist) {
+      setErr(
+        "Grist plugin API did not load (window.grist is undefined).\n" +
+        "Check the script tag: <script src=\"https://docs.getgrist.com/grist-plugin-api.js\"></script>"
+      );
+    } else {
+      grist.ready({ requiredAccess: "read table", allowSelectBy: true });
 
-    function fillSelect(sel, items, selected, allLabel){
-      sel.innerHTML = "";
-      const all = document.createElement("option");
-      all.value = "";
-      all.textContent = allLabel;
-      sel.appendChild(all);
+      const q = document.getElementById("q");
+      const clearX = document.getElementById("clearX");
 
-      items.forEach(v => {
-        const o = document.createElement("option");
-        o.value = v;
-        o.textContent = v;
-        sel.appendChild(o);
-      });
+      const yearSel = document.getElementById("yearSel");
+      const statusSel = document.getElementById("statusSel");
+      const lawyerSel = document.getElementById("lawyerSel");
+      const typeSel = document.getElementById("typeSel");
 
-      sel.value = selected || "";
-    }
+      const countEl = document.getElementById("count");
+      const clearBtn = document.getElementById("clearBtn");
 
-    function applyDefaultsIfEmpty(){
-      if (!state.year){
-        const currentYear = String(new Date().getFullYear());
-        const years = new Set(rows.map(r => norm(r.MTR_YEAR)));
-        if (years.has(currentYear)) state.year = currentYear;
+      const searchTag = document.getElementById("searchTag");
+      const searchHL = document.getElementById("searchHL");
+
+      let rows = [];
+      let state = {
+        queryDraft: "",
+        query: "",
+        year: "", status: "", lawyer: "", type: ""
+      };
+
+      function uniq(arr){
+        const s = new Set(arr.map(norm));
+        return [...s].filter(v => v !== "");
       }
-      if (!state.status){
-        const statuses = new Set(rows.map(r => norm(r.Status)));
-        if (statuses.has("Active")) state.status = "Active";
+      function sortYears(years){
+        return years.map(Number).filter(n => !Number.isNaN(n)).sort((a,b)=>b-a).map(String);
       }
-    }
-
-    function searching(){
-      return norm(state.query).trim().length > 0;
-    }
-
-    function syncUIForMode(){
-      const isSearching = searching();
-
-      yearSel.disabled = isSearching;
-      statusSel.disabled = isSearching;
-      lawyerSel.disabled = isSearching;
-      typeSel.disabled = isSearching;
-
-      if (isSearching){
-        searchHL.textContent = state.query;
-        searchTag.style.display = "inline-flex";
-        q.title = "Search mode active. Filters are ignored while searching. Press Esc to clear.";
-      } else {
-        searchTag.style.display = "none";
-        q.placeholder = "Press Enter to search. Filters are ignored while searching.";
-        q.title = "Press Enter to search. Filters are ignored while searching. Press Esc to clear.";
+      function sortAlpha(items){
+        return items.sort((a,b)=>a.localeCompare(b, undefined, { sensitivity:"base" }));
       }
-    }
 
-    function computeIds(){
-      const qtext = norm(state.query).trim().toLowerCase();
+      function fillSelect(sel, items, selected, allLabel){
+        sel.innerHTML = "";
+        const all = document.createElement("option");
+        all.value = "";
+        all.textContent = allLabel;
+        sel.appendChild(all);
 
-      if (qtext){
+        items.forEach(v => {
+          const o = document.createElement("option");
+          o.value = v;
+          o.textContent = v;
+          sel.appendChild(o);
+        });
+
+        sel.value = selected || "";
+      }
+
+      function applyDefaultsIfEmpty(){
+        if (!state.year){
+          const currentYear = String(new Date().getFullYear());
+          const years = new Set(rows.map(r => norm(r.MTR_YEAR)));
+          if (years.has(currentYear)) state.year = currentYear;
+        }
+        if (!state.status){
+          const statuses = new Set(rows.map(r => norm(r.Status)));
+          if (statuses.has("Active")) state.status = "Active";
+        }
+      }
+
+      function searching(){
+        return norm(state.query).trim().length > 0;
+      }
+
+      function syncUIForMode(){
+        const isSearching = searching();
+
+        yearSel.disabled = isSearching;
+        statusSel.disabled = isSearching;
+        lawyerSel.disabled = isSearching;
+        typeSel.disabled = isSearching;
+
+        if (isSearching){
+          searchHL.textContent = state.query;
+          searchTag.style.display = "inline-flex";
+          q.title = "Search by MatterID, Client, or Subject. Filters are ignored while searching. Press Esc to clear.";
+        } else {
+          searchTag.style.display = "none";
+          q.placeholder = "Search by MatterID, Client, or Subject";
+          q.title = "Search by MatterID, Client, or Subject. Press Enter to search. Filters are ignored while searching. Press Esc to clear.";
+        }
+      }
+
+      // OR behavior:
+      // - Search committed (Enter) => SEARCH ONLY (ignores dropdowns)
+      // - No committed search => FILTER ONLY (AND across dropdowns)
+      function computeIds(){
+        const qtext = norm(state.query).trim().toLowerCase();
+
+        if (qtext){
+          const ids = [];
+          for (let i=0; i<rows.length; i++){
+            if (rows[i]._search.indexOf(qtext) !== -1) ids.push(rows[i].id);
+          }
+          return ids;
+        }
+
+        const y = norm(state.year);
+        const s = norm(state.status);
+        const l = norm(state.lawyer);
+        const t = norm(state.type);
+
         const ids = [];
         for (let i=0; i<rows.length; i++){
-          if (rows[i]._search.indexOf(qtext) !== -1) ids.push(rows[i].id);
+          const r = rows[i];
+          if (y && norm(r.MTR_YEAR) !== y) continue;
+          if (s && norm(r.Status) !== s) continue;
+          if (l && norm(r.Lawyer) !== l) continue;
+          if (t && norm(r.Mtr_Type) !== t) continue;
+          ids.push(r.id);
         }
         return ids;
       }
 
-      const y = norm(state.year);
-      const s = norm(state.status);
-      const l = norm(state.lawyer);
-      const t = norm(state.type);
-
-      const ids = [];
-      for (let i=0; i<rows.length; i++){
-        const r = rows[i];
-        if (y && norm(r.MTR_YEAR) !== y) continue;
-        if (s && norm(r.Status) !== s) continue;
-        if (l && norm(r.Lawyer) !== l) continue;
-        if (t && norm(r.Mtr_Type) !== t) continue;
-        ids.push(r.id);
+      function applySelection(){
+        const ids = computeIds();
+        countEl.textContent = `${ids.length} matches`;
+        grist.setSelectedRows(ids.length ? ids : null);
       }
-      return ids;
-    }
 
-    function applySelection(){
-      const ids = computeIds();
-      countEl.textContent = `${ids.length} matches`;
-      grist.setSelectedRows(ids.length ? ids : null);
-    }
+      function renderOptions(){
+        const years = sortYears(uniq(rows.map(r => r.MTR_YEAR)));
+        const statuses = sortAlpha(uniq(rows.map(r => r.Status)));
+        const lawyers = sortAlpha(uniq(rows.map(r => r.Lawyer)));
+        const types = sortAlpha(uniq(rows.map(r => r.Mtr_Type)));
 
-    function renderOptions(){
-      const years = sortYears(uniq(rows.map(r => r.MTR_YEAR)));
-      const statuses = sortAlpha(uniq(rows.map(r => r.Status)));
-      const lawyers = sortAlpha(uniq(rows.map(r => r.Lawyer)));
-      const types = sortAlpha(uniq(rows.map(r => r.Mtr_Type)));
+        fillSelect(yearSel, years, state.year, "All years");
+        fillSelect(statusSel, statuses, state.status, "All statuses");
+        fillSelect(lawyerSel, lawyers, state.lawyer, "All lawyers");
+        fillSelect(typeSel, types, state.type, "All types");
+      }
 
-      fillSelect(yearSel, years, state.year, "All years");
-      fillSelect(statusSel, statuses, state.status, "All statuses");
-      fillSelect(lawyerSel, lawyers, state.lawyer, "All lawyers");
-      fillSelect(typeSel, types, state.type, "All types");
-    }
+      function updateClearX(){
+        const hasText = norm(state.queryDraft).length > 0;
+        clearX.style.display = hasText ? "inline-flex" : "none";
+      }
 
-    function updateClearX(){
-      const hasText = norm(state.queryDraft).length > 0;
-      clearX.style.display = hasText ? "inline-flex" : "none";
-    }
-
-    function clearSearch(){
-      state.queryDraft = "";
-      state.query = "";
-      q.value = "";
-      updateClearX();
-      syncUIForMode();
-      applySelection();
-    }
-
-    q.addEventListener("input", () => {
-      state.queryDraft = q.value;
-      updateClearX();
-    });
-
-    q.addEventListener("keydown", (ev) => {
-      if (ev.key === "Enter"){
-        ev.preventDefault();
-        state.query = norm(state.queryDraft).trim();
+      function clearSearch(){
+        state.queryDraft = "";
+        state.query = "";
+        q.value = "";
+        updateClearX();
         syncUIForMode();
         applySelection();
-      } else if (ev.key === "Escape"){
-        ev.preventDefault();
-        clearSearch();
       }
-    });
 
-    clearX.addEventListener("click", () => {
-      clearSearch();
-      q.focus();
-    });
+      q.addEventListener("input", () => {
+        state.queryDraft = q.value;
+        updateClearX();
+      });
 
-    yearSel.addEventListener("change", () => { state.year = yearSel.value; applySelection(); });
-    statusSel.addEventListener("change", () => { state.status = statusSel.value; applySelection(); });
-    lawyerSel.addEventListener("change", () => { state.lawyer = lawyerSel.value; applySelection(); });
-    typeSel.addEventListener("change", () => { state.type = typeSel.value; applySelection(); });
-
-    clearBtn.addEventListener("click", () => {
-      state.queryDraft = "";
-      state.query = "";
-      q.value = "";
-      updateClearX();
-
-      state.year = "";
-      state.status = "";
-      state.lawyer = "";
-      state.type = "";
-
-      applyDefaultsIfEmpty();
-      renderOptions();
-      syncUIForMode();
-      applySelection();
-    });
-
-    setErr("");
-    grist.fetchSelectedTable({ format:"rows" })
-      .then(data => {
-        const all = data || [];
-        if (!all.length){
-          setErr("No rows returned. Check Select Data = Matters and access level.");
-          return;
+      q.addEventListener("keydown", (ev) => {
+        if (ev.key === "Enter"){
+          ev.preventDefault();
+          state.query = norm(state.queryDraft).trim();
+          syncUIForMode();
+          applySelection();
+        } else if (ev.key === "Escape"){
+          ev.preventDefault();
+          clearSearch();
         }
+      });
 
-        const first = all[0] || {};
-        const required = ["MatterID","Clients","Subject","Subject2","Lawyer","Mtr_Type","MTR_YEAR","Status"];
-        const missing = required.filter(k => !(k in first));
-        if (missing.length){
-          setErr("Missing column(s): " + missing.join(", "));
-          return;
-        }
+      clearX.addEventListener("click", () => {
+        clearSearch();
+        q.focus();
+      });
 
-        rows = all.map(r => {
-          const searchBlob = (
-            norm(r.MatterID) + " " +
-            norm(r.Clients) + " " +
-            norm(r.Subject) + " " +
-            norm(r.Subject2)
-          ).toLowerCase();
+      yearSel.addEventListener("change", () => { state.year = yearSel.value; applySelection(); });
+      statusSel.addEventListener("change", () => { state.status = statusSel.value; applySelection(); });
+      lawyerSel.addEventListener("change", () => { state.lawyer = lawyerSel.value; applySelection(); });
+      typeSel.addEventListener("change", () => { state.type = typeSel.value; applySelection(); });
 
-          return {
-            id: r.id,
-            MTR_YEAR: r.MTR_YEAR,
-            Status: r.Status,
-            Lawyer: r.Lawyer,
-            Mtr_Type: r.Mtr_Type,
-            _search: searchBlob
-          };
-        });
+      clearBtn.addEventListener("click", () => {
+        state.queryDraft = "";
+        state.query = "";
+        q.value = "";
+        updateClearX();
+
+        state.year = "";
+        state.status = "";
+        state.lawyer = "";
+        state.type = "";
 
         applyDefaultsIfEmpty();
         renderOptions();
         syncUIForMode();
         applySelection();
-      })
-      .catch(e => {
-        setErr("fetchSelectedTable failed: " + (e && e.message ? e.message : e));
       });
+
+      // Load data once
+      setErr("");
+      grist.fetchSelectedTable({ format:"rows" })
+        .then(data => {
+          const all = data || [];
+          if (!all.length){
+            setErr("No rows returned. Check Select Data = Matters and access level.");
+            return;
+          }
+
+          const first = all[0] || {};
+          const required = ["MatterID","Clients","Subject","Subject2","Lawyer","Mtr_Type","MTR_YEAR","Status"];
+          const missing = required.filter(k => !(k in first));
+          if (missing.length){
+            setErr("Missing column(s): " + missing.join(", "));
+            return;
+          }
+
+          rows = all.map(r => {
+            const searchBlob = (
+              norm(r.MatterID) + " " +
+              norm(r.Clients) + " " +
+              norm(r.Subject) + " " +
+              norm(r.Subject2)
+            ).toLowerCase();
+
+            return {
+              id: r.id,
+              MTR_YEAR: r.MTR_YEAR,
+              Status: r.Status,
+              Lawyer: r.Lawyer,
+              Mtr_Type: r.Mtr_Type,
+              _search: searchBlob
+            };
+          });
+
+          applyDefaultsIfEmpty();
+          renderOptions();
+          syncUIForMode();
+          applySelection();
+        })
+        .catch(e => {
+          setErr("fetchSelectedTable failed: " + (e && e.message ? e.message : e));
+        });
+    }
   </script>
 </body>
 </html>
